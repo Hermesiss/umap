@@ -21,26 +21,60 @@
             let returnValue = null;
 
             switch(data.method) {
-                case 'getLayers':  
-                    returnValue = getLayers()
-                    break
-                case 'removeLayer':  
-                    returnValue = removeLayer(data.value)
-                    break
-                case 'removeLayers':  
-                    returnValue = removeLayers(data.value)
-                    break
-                case 'addLayer':  
-                    returnValue = addLayer(data.value)
-                    break
-                case 'addLayers':  
-                    returnValue = addLayers(data.value)
-                    break
-                default:                 
-                    break
+                // case 'getLayers':  
+                //     returnValue = getLayers()
+                //     break
+                // case 'removeLayer':  
+                //     returnValue = removeLayer(data.value)
+                //     break
+                // case 'removeLayers':  
+                //     returnValue = removeLayers(data.value)
+                //     break
+                // case 'addLayer':  
+                //     returnValue = addLayer(data.value)
+                //     break
+                // case 'addLayers':  
+                //     returnValue = addLayers(data.value)
+                //     break      
+                case 'showTownsBuildAfter':
+                    returnValue = showTownsBuildAfter(data.value)
+                    break;
+                default:       
+                    console.error("Unknown method", data.method)
+                    return;
                 }
 
             event.source.postMessage({method: data.method, value: returnValue}, event.origin)
+        }
+
+        let towns = null
+
+        function showTownsBuildAfter(year){
+            if (towns === null){
+                towns = Object.entries(MAP._layers).filter(x => x[1].properties?.["Год основания"]);
+            }
+
+            const old = towns.filter(x => x[1].properties["Год основания"] <= year)
+            const young = towns.filter(x => x[1].properties["Год основания"] > year)
+
+            let shown = 0;
+            let hidden = 0;
+
+            for (town of old) {
+                if (!MAP.hasLayer(town[1])){
+                    MAP.addLayer(town[1]);
+                    shown++;
+                }
+            }
+
+            for (town of young) {
+                if (MAP.hasLayer(town[1])) {
+                    MAP.removeLayer(town[1]);
+                    hidden++;
+                }
+            }
+
+            return {shown, hidden}
         }
 
         function getLayers(){
