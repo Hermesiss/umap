@@ -2,35 +2,67 @@
     <div id="map"></div>
     <script type="text/javascript">
         var MAP = new L.U.Map("map", {{ map_settings|notag|safe }});
-        window.addEventListener("getLayers", getLayers, false);
-        window.addEventListener("removeLayer", removeLayer, false);
-        window.addEventListener("removeLayers", removeLayers, false) ;
-        window.addEventListener("addLayer", addLayer, false);
-        window.addEventListener("addLayers", addLayers, false);
-        window.addEventListener("backMessage", event => console.log(event.data), false);
+        // window.addEventListener("getLayers", getLayers, false);
+        // window.addEventListener("removeLayer", removeLayer, false);
+        // window.addEventListener("removeLayers", removeLayers, false) ;
+        // window.addEventListener("addLayer", addLayer, false);
+        // window.addEventListener("addLayers", addLayers, false);
+        // window.addEventListener("backMessage", event => console.log(event.data), false);
 
-        function getLayers(event){
-            event.source.postMessage('backMessage', MAP._layers, event.origin)
+        window.addEventListener("message", handleLeafletMessage, false);
+
+        function handleLeafletMessage(event){
+            const data = event.data;
+            if (!data.method) {
+                console.error("You should send an object with method and value fields")
+                return;
+            }
+
+            let returnValue = null;
+
+            switch(data.method) {
+                case 'getLayers':  
+                    returnValue = getLayers()
+                    break
+                case 'removeLayer':  
+                    returnValue = removeLayer(data.value)
+                    break
+                case 'removeLayers':  
+                    returnValue = removeLayers(data.value)
+                    break
+                case 'addLayer':  
+                    returnValue = addLayer(data.value)
+                    break
+                case 'addLayers':  
+                    returnValue = addLayers(data.value)
+                    break
+                default:                 
+                    break
+                }
+
+            event.source.postMessage({method: data.method, value: returnValue}, event.origin)
         }
 
-        function removeLayer(event){
-            const layer = event.data;
+        function getLayers(){
+            return MAP._layers
+        }
+
+        function removeLayer(layer){            
             if (MAP.hasLayer(layer)) MAP.removeLayer(layer);
         }
 
-        function removeLayers(event) {
-            for (layer of event.data) {
+        function removeLayers(layers) {
+            for (layer of layers) {
                 if (MAP.hasLayer(layer)) MAP.removeLayer(layer);
             }
         }
 
-        function addLayer(event){
-            const layer = event.data;
+        function addLayer(layer){            
             if (!MAP.hasLayer(layer)) MAP.addLayer(layer);
         }
 
-        function addLayers(event) {
-            for (layer of event.data) {
+        function addLayers(layers) {
+            for (layer of layers) {
                 if (!MAP.hasLayer(layer)) MAP.addLayer(layer);
             }
         }
