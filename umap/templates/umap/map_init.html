@@ -2,4 +2,36 @@
     <div id="map"></div>
     <script type="text/javascript">
         var MAP = new L.U.Map("map", {{ map_settings|notag|safe }});
+        window.addEventListener("getLayers", getLayers, false);
+        window.addEventListener("removeLayer", removeLayer, false);
+        window.addEventListener("removeLayers", removeLayers, false) ;
+        window.addEventListener("addLayer", addLayer, false);
+        window.addEventListener("addLayers", addLayers, false);
+        window.addEventListener("backMessage", event => console.log(event.data), false);
+
+        function getLayers(event){
+            event.source.postMessage('backMessage', MAP._layers, event.origin)
+        }
+
+        function removeLayer(event){
+            const layer = event.data;
+            if (MAP.hasLayer(layer)) MAP.removeLayer(layer);
+        }
+
+        function removeLayers(event) {
+            for (layer of event.data) {
+                if (MAP.hasLayer(layer)) MAP.removeLayer(layer);
+            }
+        }
+
+        function addLayer(event){
+            const layer = event.data;
+            if (!MAP.hasLayer(layer)) MAP.addLayer(layer);
+        }
+
+        function addLayers(event) {
+            for (layer of event.data) {
+                if (!MAP.hasLayer(layer)) MAP.addLayer(layer);
+            }
+        }
     </script>
